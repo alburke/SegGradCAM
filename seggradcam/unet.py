@@ -2,7 +2,7 @@ from csbdeep.internals.blocks import unet_block
 from keras.models import Model
 from keras.layers import Conv2D, Input, Activation, Conv2DTranspose, BatchNormalization, Dropout, UpSampling2D
 from keras.layers.pooling import MaxPooling2D
-from keras.layers.merge import concatenate
+from keras.layers import concatenate
 import os
 import sys
 from pathlib import Path

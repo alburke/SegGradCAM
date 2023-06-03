@@ -68,7 +68,7 @@ class SegGradCAMplot(SegGradCAM):
             self.cmap_orig = None
 
             # gt, predictions?
-
+        print(self.gt, np.shape(self.gt))
     def defaultScales(self):
         classes_cmap = plt.get_cmap('Spectral', self.n_classes)
         scale_fig = 2
@@ -83,16 +83,19 @@ class SegGradCAMplot(SegGradCAM):
         scatter_size = int(scatter_size / 3)
         plt.figure(figsize=(10 * scale_fig, 5 * scale_fig))
         # plt.axis('off')
-        plt.imshow(self.ximg, vmin=0, vmax=1, cmap=self.cmap_orig)
+        
+        
+        plt.imshow(self.gt, vmin=0, vmax=1, cmap=self.cmap_orig)
+        #plt.imshow(self.ximg, vmin=0, vmax=1, cmap=self.cmap_orig)
         # class contour
         X, Y = self.roi.meshgrid()
-
         if pixel:
             # i, j = self.roi.i, self.roi.j
             classroi = ClassRoI(self.model, self.image, self.cls)
             roi_contour1 = classroi.roi
         else:
             roi_contour1 = self.roi.roi
+        
         plt.contour(X, Y, roi_contour1, colors='pink')
 
         plt.title(title1, fontsize=fonts)
@@ -102,18 +105,18 @@ class SegGradCAMplot(SegGradCAM):
             plt.contour(X, Y, biasroi.biased_mask, colors='magenta')  # 'black') #'purple')
             if biasroi.biased_mask.any() != 0:
                 plt.title(title1bias, fontsize=fonts)
-        plt.imshow(self.cam, cmap='jet',  # vmin=0,vmax=1,
-                   alpha=0.6)
+        plt.imshow(self.cam, cmap='jet', alpha=0.2)
         jet = plt.colorbar(fraction=0.046, pad=0.04, ticks=[0, 0.2, 0.4, 0.6, 0.8, 1])
         jet.set_label(label="Importance", size=fonts)
         jet.ax.set_yticklabels([0, 0.2, 0.4, 0.6, 0.8, 1], size=fonts)
         if pixel:
             plt.scatter(self.roi.j, self.roi.i, color='white', s=scatter_size)  # j then i or i,j ?
-
+        
         plt.savefig(os.path.join(self.outfolder,
                                  start_save_name + str(self.cls) + '_to_act' + self.prop_to_layer.split('_')[1] +'_'+
-                                 self.timestr + ".png"))
-
+                                  self.timestr + ".png"))
+        
+    
     def explainClass(self):
         """Plot seg-grad-cam explanation for a selected class channel"""
         title1 = 'Seg-Grad-CAM for class %d' % (self.cls)
@@ -137,7 +140,6 @@ class SegGradCAMplot(SegGradCAM):
         self.explainBase(title1, title1bias, start_save_name, pixel=True)
 
     def baseGtPrediction(self, title2, start_save_name_tetra, pixel=False):
-
         if self.next_dict and self.image_id:
             self.gt = self.next_dict[1][self.image_id]
         if type(self.gt) == 'NoneType':  # .all()==None:
@@ -180,7 +182,8 @@ class SegGradCAMplot(SegGradCAM):
 
         plt.subplot(223)
         plt.axis('off')
-        plt.imshow(np.argmax(self.gt, axis=-1), vmin=0, vmax=self.n_classes - 1, cmap=classes_cmap)
+        plt.imshow(self.gt, vmin=0, vmax=self.n_classes - 1, cmap=classes_cmap)
+        #plt.imshow(np.argmax(self.gt, axis=-1), vmin=0, vmax=self.n_classes - 1, cmap=classes_cmap)
         plt.title('Groundtruth mask', fontsize=fonts)
         if pixel:
             plt.scatter(j, i, color='white', s=scatter_size)

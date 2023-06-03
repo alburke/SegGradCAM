@@ -1,10 +1,13 @@
 import numpy as np
 import cv2
-from keras import backend as K
+import tensorflow as tf
+from tensorflow.keras import backend as K
+tf.compat.v1.disable_eager_execution()
+
+#from keras import backend as K
 from skimage import measure
 import matplotlib.pyplot as plt
 from operator import sub
-
 
 class SuperRoI:  # or rename it to ClassRoI
     def __init__(self, image =None):
@@ -30,9 +33,14 @@ class SuperRoI:  # or rename it to ClassRoI
 class ClassRoI(SuperRoI):
     def __init__(self, model, image, cls):
         preds = model.predict(np.expand_dims(image, 0))[0]
-        max_preds = preds.argmax(axis=-1)
+        print(np.nanmax(preds))
+        #max_preds = preds.argmax(axis=-1)
         self.image = image
-        self.roi = np.round(preds[..., cls] * (max_preds == cls)).reshape(image.shape[-3], image.shape[-2])
+        self.roi = np.where(preds == cls, 1,0)[:,:,0]
+        print('roi shape',self.roi.shape)
+        #np.round(preds * (max_preds == cls)) #.reshape(image.shape[-3], image.shape[-2])
+        #print(preds * (max_preds == cls))
+        #self.roi = np.round(preds..., cls] * (max_preds == cls)).reshape(image.shape[-3], image.shape[-2])
         self.fullroi = self.roi
         self.setRoIij()
 
@@ -160,8 +168,12 @@ class SegGradCAM:
         Return: A, gradients of the logits y with respect to all pixels of each feature map 𝐴^𝑘
         """
         preprocessed_input = np.expand_dims(self.image, 0)
-        y_c = self.input_model.get_layer(self.prop_from_layer).output[
-                  ..., self.cls] * self.roi.roi  # Mask the region of interest
+
+        #y_c = self.input_model.get_layer(self.prop_from_layer).output[
+        #          ..., self.cls] * self.roi.roi  # Mask the region of interest
+        
+        y_c = self.input_model.get_layer(self.prop_from_layer).output * self.roi.roi  # Mask the region of interest
+        
         #print("y_c: ", type(y_c), np.array(y_c))
         conv_output = self.input_model.get_layer(self.prop_to_layer).output
         #print("conv_output: ", type(conv_output), np.array(conv_output))
